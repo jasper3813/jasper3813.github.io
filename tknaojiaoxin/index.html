@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tk挠脚心模拟器-玩法机制与互动体验指南</title>
+<meta name="description" content="tk挠脚心模拟器是一类以足底触感为核心的互动娱乐工具，本文梳理其玩法机制、难度设定、角色选择、反馈设计与常见问题，附条目榜单与玩家评论，帮助理解触感模拟的边界与判断方法。">
+<meta name="keywords" content="tk挠脚心模拟器">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c2410c'/%3E%3Cpath d='M10 22c0-6 3-12 6-12s6 6 6 12' stroke='%23fff7ed' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='13' cy='18' r='1.6' fill='%23fff7ed'/%3E%3Ccircle cx='19' cy='18' r='1.6' fill='%23fff7ed'/%3E%3C/svg%3E">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"tk挠脚心模拟器","description":"以足底触感为核心的互动娱乐工具与玩法资料整理","inLanguage":"zh-CN"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"tk挠脚心模拟器的触感反馈是真实的吗？","acceptedAnswer":{"@type":"Answer","text":"不是物理接触。多数版本用音效、震动马达与画面节奏配合，制造“痒”的心理预期；实际触感依赖设备的振动强度和佩戴位置，手机放在桌面时反馈明显弱于手持。"}},
+{"@type":"Question","name":"敏感度档位怎么选才合适？","acceptedAnswer":{"@type":"Answer","text":"从二档起步。三档以上每局时长会压缩，容易在30秒内触发失败判定；对触感反馈陌生的人先用一档走完全流程，再逐级上调。"}},
+{"@type":"Question","name":"为什么同一角色在不同版本里反应差别很大？","acceptedAnswer":{"@type":"Answer","text":"角色反应由脚本帧与配音片段共同决定。1.8版把“缩脚”动作从6帧延长到11帧，配音延迟了0.2秒，观感就从立刻躲闪变成迟疑躲闪。版本差异比角色本身影响更大。"}},
+{"@type":"Question","name":"离线状态下能玩吗？","acceptedAnswer":{"@type":"Answer","text":"基础关卡可以。云端排行榜、角色皮肤和每日挑战依赖网络，离线时会退回本地记录，排行榜显示上一次同步的分数。"}},
+{"@type":"Question","name":"儿童可以玩这类模拟器吗？","acceptedAnswer":{"@type":"Answer","text":"音效与画面强度按成人向设计，部分版本含卡通化的挣扎演出。监护人不宜让12岁以下儿童单独使用，尤其避免在睡前连续游玩超过20分钟。"}}
+]}
+</script>
+<style>
+:root{
+--ink:#241b15;
+--ink-2:#4d3f35;
+--ink-3:#7a6a5d;
+--paper:#fdf8f2;
+--card:#ffffff;
+--line:#e8dbcd;
+--brand:#c2410c;
+--brand-d:#8f2d08;
+--brand-l:#fdece0;
+--accent:#0f766e;
+--accent-l:#e6f4f1;
+--warn:#a16207;
+--warn-l:#fdf6e3;
+--r:14px;
+--r-s:9px;
+--sp:clamp(14px,2.2vw,22px);
+--shadow:0 1px 2px rgba(60,35,15,.06),0 6px 20px -12px rgba(60,35,15,.25);
+--max:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:112px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans SC","PingFang SC","Microsoft Yahei",system-ui,sans-serif;font-size:16px;line-height:1.75;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:var(--brand-d);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:700;letter-spacing:.01em}
+p{margin:0 0 .85em}
+ul,ol{margin:0 0 .85em;padding-left:1.25em}
+li{margin:.25em 0}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--sp)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.skip{position:absolute;left:-9999px;top:0;background:#fff;padding:8px 14px;z-index:200}
+.skip:focus{left:8px;top:8px}
+/* sticky stack */
+.sticky-stack{position:sticky;top:0;z-index:60}
+.announce{background:linear-gradient(90deg,#3b2317,#6b3410);color:#ffeede;font-size:13.5px;padding:9px 0}
+.announce .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.announce b{color:#ffd9b0;font-weight:700}
+.announce .tag{background:#ffd9b0;color:#4a2408;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700;letter-spacing:.02em}
+.announce a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+header.site{background:rgba(253,248,242,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.head{display:flex;align-items:center;gap:14px;padding:10px 0;min-height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--ink);flex:0 0 auto}
+.brand:hover{text-decoration:none}
+.brand svg{width:34px;height:34px;flex:0 0 auto}
+.brand span{letter-spacing:.01em}
+.nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.nav a{color:var(--ink-2);font-size:14.5px;padding:7px 10px;border-radius:8px;white-space:nowrap}
+.nav a:hover{background:var(--brand-l);color:var(--brand-d);text-decoration:none}
+.menu-btn{display:none;margin-left:auto;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;align-items:center;gap:7px}
+.menu-btn .bars{display:inline-block;width:16px;height:2px;background:var(--ink);position:relative}
+.menu-btn .bars::before,.menu-btn .bars::after{content:"";position:absolute;left:0;width:16px;height:2px;background:var(--ink)}
+.menu-btn .bars::before{top:-5px}.menu-btn .bars::after{top:5px}
+/* hero */
+.hero{position:relative;overflow:hidden;background:
+radial-gradient(1100px 380px at 82% -10%,#ffe6cf 0%,transparent 62%),
+radial-gradient(700px 300px at 8% 108%,#e4f2ef 0%,transparent 60%),
+linear-gradient(180deg,#fffaf4,#fdf8f2)}
+.hero-in{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(18px,3vw,42px);align-items:center;padding:clamp(26px,4vw,52px) 0 clamp(24px,4vw,46px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--brand-l);color:var(--brand-d);font-size:13px;font-weight:700;border-radius:99px;padding:4px 12px;margin-bottom:14px}
+.hero h1{font-size:clamp(30px,4.6vw,50px);letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--brand);position:relative}
+.hero .lede{font-size:clamp(15px,1.6vw,17px);color:var(--ink-2);max-width:36em;margin:14px 0 20px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;font-weight:700;font-size:15px;padding:11px 20px;border-radius:11px;border:1px solid var(--brand);box-shadow:var(--shadow);transition:transform .15s ease}
+.btn:hover{transform:translateY(-2px);text-decoration:none;color:#fff}
+.btn.ghost{background:transparent;color:var(--brand-d);border-color:#e5b9a0;box-shadow:none}
+.btn.ghost:hover{background:#fff}
+.hero-stats{display:flex;gap:clamp(14px,3vw,30px);flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:16px;max-width:34em}
+.hero-stats div{min-width:96px}
+.hero-stats b{display:block;font-size:22px;color:var(--brand-d);line-height:1.2}
+.hero-stats small{color:var(--ink-3);font-size:12.5px}
+.hero-art{position:relative;min-height:280px;display:flex;align-items:center;justify-content:center}
+.hero-art .panel{width:100%;background:linear-gradient(160deg,#fff,#fff8f0);border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 50px -30px rgba(90,45,10,.5);padding:18px}
+.hero-art svg{width:100%;height:auto;display:block}
+.hero-art .badge{position:absolute;right:6px;bottom:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:12.5px;font-weight:700;color:var(--ink-2);box-shadow:var(--shadow)}
+/* layout */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 304px;gap:clamp(18px,3vw,34px);padding:clamp(22px,3.4vw,40px) 0}
+main{min-width:0}
+aside{min-width:0}
+section.block{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,2.4vw,26px);margin-bottom:clamp(16px,2.4vw,24px);box-shadow:var(--shadow)}
+.block>h2{font-size:clamp(20px,2.4vw,24px);margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.block>h2 .num{font-size:12px;font-weight:800;color:var(--brand);background:var(--brand-l);border-radius:7px;padding:2px 8px;letter-spacing:.06em}
+.sub{color:var(--ink-3);font-size:13.6px;margin:0 0 16px}
+h3{font-size:17px;margin:18px 0 8px}
+h3:first-child{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:12px 0 0}
+.chips li{margin:0}
+.chip{display:inline-block;background:var(--accent-l);color:#0b4f49;border:1px solid #c8e5e0;font-size:13.3px;padding:5px 11px;border-radius:99px;font-weight:600}
+.chip:hover{text-decoration:none;background:#d5eeea}
+.chip.alt{background:var(--warn-l);border-color:#efdfb4;color:#7a4d05}
+/* grids */
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:#fffdfa;border:1px solid var(--line);border-radius:var(--r-s);padding:14px;transition:transform .15s ease,box-shadow .15s ease}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.card h4{font-size:15.4px;margin-bottom:6px}
+.card p{font-size:13.8px;color:var(--ink-2);margin:0 0 8px}
+.meta{font-size:12.4px;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap}
+.meta b{color:var(--brand-d);font-weight:700}
+.thumb{border-radius:8px;overflow:hidden;margin-bottom:10px;background:#f2e8dd}
+.thumb img{width:100%;height:132px;object-fit:cover}
+/* compact list */
+.list{list-style:none;padding:0;margin:0}
+.list li{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line);font-size:14.6px}
+.list li:last-child{border-bottom:0;padding-bottom:0}
+.list time,.list .d{font-size:12.4px;color:var(--ink-3);white-space:nowrap;padding-top:2px;min-width:64px}
+.list .t{color:var(--ink)}
+.list .t a{font-weight:700;color:var(--ink)}
+.list .t a:hover{color:var(--brand-d)}
+.list .t span{display:block;color:var(--ink-3);font-size:13px;margin-top:2px}
+/* compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden}
+.compare>div{padding:14px 16px}
+.compare .c1{background:#fdf3ea;border-right:1px solid var(--line)}
+.compare .c2{background:#eef6f4}
+.compare h4{font-size:14.4px;margin-bottom:8px;color:var(--brand-d)}
+.compare .c2 h4{color:#0b4f49}
+.compare ul{padding-left:1.1em;margin:0;font-size:13.6px;color:var(--ink-2)}
+/* steps */
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.steps li{counter-increment:s;position:relative;padding:12px 14px 12px 52px;background:#fffaf4;border:1px solid var(--line);border-radius:var(--r-s);font-size:14.3px}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;font-size:13.5px;display:flex;align-items:center;justify-content:center}
+.steps li b{color:var(--brand-d)}
+/* quote */
+.quote{border-left:4px solid var(--brand);background:linear-gradient(90deg,var(--brand-l),#fffdfa);border-radius:0 var(--r-s) var(--r-s) 0;padding:14px 16px;margin:14px 0;font-size:14.6px;color:var(--ink-2)}
+.quote p:last-child{margin:0}
+.quote cite{font-style:normal;font-size:12.8px;color:var(--ink-3);display:block;margin-top:6px}
+/* deep reading */
+.deep{font-size:15.6px}
+.deep h3{font-size:18px;color:var(--brand-d);border-bottom:2px solid var(--brand-l);padding-bottom:6px}
+.deep p{color:var(--ink-2)}
+.deep table{width:100%;border-collapse:collapse;font-size:13.8px;margin:12px 0}
+.deep th,.deep td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.deep th{background:#fbf1e7;font-weight:700;color:var(--ink)}
+.deep td{color:var(--ink-2)}
+.callout{background:var(--warn-l);border:1px solid #edd9a6;border-radius:var(--r-s);padding:12px 14px;font-size:14px;color:#5e4306;margin:14px 0}
+.callout b{color:#7a4d05}
+/* faq */
+details{background:#fffdfa;border:1px solid var(--line);border-radius:var(--r-s);padding:0;margin-bottom:9px;overflow:hidden}
+details summary{cursor:pointer;font-weight:700;font-size:14.8px;padding:13px 16px;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;color:var(--ink)}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";font-weight:800;color:var(--brand);font-size:18px;line-height:1;flex:0 0 auto;transform:translateY(1px)}
+details[open] summary::after{content:"–"}
+details[open] summary{border-bottom:1px dashed var(--line);background:#fffaf4}
+details .a{padding:12px 16px 14px;font-size:14.2px;color:var(--ink-2)}
+details .a p:last-child{margin:0}
+/* reviews */
+.reviews{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rev{background:#fffdfa;border:1px solid var(--line);border-radius:var(--r-s);padding:13px 14px;font-size:14px}
+.rev .who{display:flex;align-items:center;gap:8px;font-size:12.8px;color:var(--ink-3);margin-bottom:6px}
+.rev .who .av{width:24px;height:24px;border-radius:50%;background:var(--brand-l);color:var(--brand-d);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.rev .stars{color:#c2410c;font-size:12.5px;letter-spacing:1px}
+.rev p{margin:0 0 6px;color:var(--ink-2)}
+.rev p:last-child{margin:0}
+.rev .src{font-size:12px;color:var(--ink-3)}
+/* rank */
+.rank{list-style:none;padding:0;margin:0;counter-reset:rk}
+.rank li{counter-increment:rk;display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14.4px}
+.rank li:last-child{border-bottom:0}
+.rank li::before{content:counter(rk);font-weight:800;color:#fff;background:var(--brand);width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;align-self:center}
+.rank li:nth-child(n+4)::before{background:#b9a795}
+.rank .sc{font-size:12.8px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rank b{font-weight:700}
+/* timeline */
+.tl{list-style:none;padding:0;margin:0;position:relative}
+.tl li{position:relative;padding:0 0 16px 22px;border-left:2px solid var(--line);font-size:14.2px}
+.tl li:last-child{border-left-color:transparent;padding-bottom:0}
+.tl li::before{content:"";position:absolute;left:-7px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--brand);border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tl b{color:var(--brand-d)}
+.tl time{font-size:12.4px;color:var(--ink-3);display:block}
+/* sidebar */
+aside .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+aside .panel h2{font-size:15.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+aside .panel h2::before{content:"";width:4px;height:15px;background:var(--brand);border-radius:2px}
+.snav{list-style:none;padding:0;margin:0;font-size:14px}
+.snav a{display:block;padding:6px 10px;border-radius:7px;color:var(--ink-2);border-left:2px solid transparent}
+.snav a:hover{background:var(--brand-l);text-decoration:none}
+.snav a.active{background:var(--brand-l);color:var(--brand-d);font-weight:700;border-left-color:var(--brand)}
+.search{display:flex;gap:8px;margin-bottom:8px}
+.search input{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px;background:#fffdfa;color:var(--ink);font-family:inherit}
+.search input:focus{border-color:var(--brand);outline:2px solid var(--brand-l)}
+.search button{background:var(--brand);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+.search button:hover{background:var(--brand-d)}
+#searchMsg{font-size:13px;color:var(--ink-3);min-height:1.4em}
+#searchMsg.found{color:#0b4f49}
+#searchMsg.none{color:#9a3412}
+.mini{list-style:none;padding:0;margin:0;font-size:13.6px}
+.mini li{padding:7px 0;border-bottom:1px dashed var(--line);color:var(--ink-2)}
+.mini li:last-child{border-bottom:0}
+.mini b{color:var(--brand-d)}
+/* footer */
+footer.site{background:#2b1c12;color:#e7d8ca;margin-top:10px}
+.foot{display:grid;grid-template-columns:1.3fr 2fr;gap:clamp(18px,3vw,38px);padding:clamp(28px,4vw,46px) 0}
+.foot .fbrand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:#fff;margin-bottom:10px}
+.foot .fbrand svg{width:30px;height:30px}
+.foot p{font-size:13.8px;color:#c9b5a3;margin:0 0 10px}
+.fcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.fcols h3{font-size:14px;color:#ffd9b0;margin:0 0 8px;letter-spacing:.04em}
+.fcols ul{list-style:none;padding:0;margin:0;font-size:13.4px}
+.fcols li{margin:5px 0}
+.fcols a{color:#d9c4b1}
+.fcols a:hover{color:#fff}
+.legal{border-top:1px solid #45301f;padding:14px 0 22px;font-size:12.6px;color:#a99280;display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between}
+.legal .r{display:flex;gap:14px;flex-wrap:wrap}
+/* top btn */
+#toTop{position:fixed;right:16px;bottom:18px;z-index:80;background:var(--brand);color:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 8px 22px -8px rgba(120,45,5,.8);opacity:0;visibility:hidden;transition:opacity .2s,transform .2s;transform:translateY(8px)}
+#toTop.show{opacity:1;visibility:visible;transform:none}
+#toTop:active{transform:scale(.95)}
+@media (prefers-reduced-motion:reduce){
+html{scroll-behavior:auto}
+*{transition:none!important;animation:none!important}
+.card:hover,.btn:hover{transform:none}
+}
+@media (max-width:960px){
+.layout{grid-template-columns:minmax(0,1fr)}
+aside{order:2}
+.grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+.hero-in{grid-template-columns:1fr}
+.hero-art{order:-1;min-height:auto}
+.foot{grid-template-columns:1fr}
+.fcols{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:720px){
+.nav{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:8px var(--sp) 14px;gap:2px;box-shadow:0 18px 24px -22px rgba(0,0,0,.4)}
+header.site{position:relative}
+.nav.open{display:flex}
+.nav a{padding:10px;font-size:15px;border-radius:8px}
+.menu-btn{display:inline-flex}
+.grid-3,.grid-2,.reviews,.compare{grid-template-columns:1fr}
+.hero-stats b{font-size:19px}
+.hide-sm{display:none}
+.rank li{grid-template-columns:30px 1fr;}
+.rank .sc{grid-column:2;}
+details summary{padding:12px 13px}
+}
+@media (max-width:400px){
+.brand{font-size:16.5px}
+.brand svg{width:28px;height:28px}
+.fcols{grid-template-columns:1fr 1fr}
+.hero h1{font-size:27px}
+}
+</style>
+<script type="text/javascript" src="https://cdn.bdwgg.com/mh.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+
+<div class="sticky-stack">
+  <div class="announce" role="region" aria-label="更新公告">
+    <div class="wrap">
+      <span class="tag">更新</span>
+      <span><b>tk挠脚心模拟器</b> 角色「小林」第三关脚本于 2026-11-06 调整：缩脚动画由 6 帧改为 11 帧，配套音效延迟 0.2 秒。</span>
+      <a href="#updates">查看更新记录</a>
+    </div>
+  </div>
+  <header class="site">
+    <div class="wrap head">
+      <a class="brand" href="/#hero" aria-label="tk挠脚心模拟器首页">
+        <svg viewBox="0 0 40 40" aria-hidden="true" role="img">
+          <rect width="40" height="40" rx="11" fill="#c2410c"/>
+          <path d="M12 28c0-7.5 3.6-15 8-15s8 7.5 8 15" stroke="#fff7ed" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+          <circle cx="16.5" cy="22" r="2" fill="#fff7ed"/>
+          <circle cx="23.5" cy="22" r="2" fill="#fff7ed"/>
+          <path d="M17 28.5c1.6 1.2 4.4 1.2 6 0" stroke="#fff7ed" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span>tk挠脚心模拟器</span>
+      </a>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="siteNav">
+        <span class="bars" aria-hidden="true"></span>菜单
+      </button>
+      <nav class="nav" id="siteNav" aria-label="主题导航">
+        <a href="/#overview">领域概览</a>
+        <a href="/#picks">精选推荐</a>
+        <a href="/#updates">最新更新</a>
+        <a href="/#channels">分类入口</a>
+        <a href="/#deep">深度解析</a>
+        <a href="/#guide">体验指南</a>
+        <a href="/#faq">常见问题</a>
+        <a href="/#reviews">玩家评论</a>
+        <a href="/#rank">条目榜单</a>
+      </nav>
+    </div>
+  </header>
+</div>
+
+<div class="hero" id="hero">
+  <div class="wrap hero-in">
+    <div>
+      <span class="eyebrow">足底触感 · 互动玩法资料站</span>
+      <h1><em>tk挠脚心模拟器</em></h1>
+      <p class="lede">把“痒”拆成可调的参数：敏感度档位、触发节奏、角色反应脚本与音效延迟。这里记录 12 个常见版本的参数差异、操作步骤与玩家反馈，方便判断哪一档适合自己。</p>
+      <div class="cta">
+        <a class="btn" href="/#guide">从二档开始体验</a>
+        <a class="btn ghost" href="/#deep">看深度解析</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>12</b><small>常见版本条目</small></div>
+        <div><b>5</b><small>敏感度档位</small></div>
+        <div><b>38</b><small>角色反应脚本</small></div>
+        <div><b>0.2s</b><small>1.8 版音效延迟</small></div>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="panel">
+        <svg viewBox="0 0 360 250" role="img">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#fde3cc"/><stop offset="1" stop-color="#f7c9a3"/>
+            </linearGradient>
+            <linearGradient id="g2" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#0f766e"/><stop offset="1" stop-color="#3aa79c"/>
+            </linearGradient>
+          </defs>
+          <rect x="10" y="10" width="340" height="230" rx="18" fill="#fffaf3" stroke="#ead9c7"/>
+          <rect x="26" y="26" width="308" height="26" rx="8" fill="#fbeedd"/>
+          <circle cx="42" cy="39" r="5" fill="#c2410c"/><circle cx="58" cy="39" r="5" fill="#e5a06a"/><circle cx="74" cy="39" r="5" fill="#0f766e"/>
+          <rect x="26" y="66" width="150" height="158" rx="14" fill="url(#g1)"/>
+          <path d="M62 200c0-34 12-64 32-64s32 30 32 64" fill="none" stroke="#c2410c" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="84" cy="164" r="5" fill="#c2410c"/>
+          <circle cx="112" cy="164" r="5" fill="#c2410c"/>
+          <path d="M88 186c6 5 18 5 24 0" stroke="#c2410c" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+          <rect x="190" y="66" width="144" height="72" rx="12" fill="url(#g2)"/>
+          <rect x="204" y="84" width="86" height="8" rx="4" fill="#d9f2ee" opacity=".9"/>
+          <rect x="204" y="100" width="112" height="8" rx="4" fill="#d9f2ee" opacity=".7"/>
+          <rect x="204" y="116" width="64" height="8" rx="4" fill="#d9f2ee" opacity=".55"/>
+          <rect x="190" y="150" width="68" height="40" rx="10" fill="#fff3e6" stroke="#ecd3b9"/>
+          <text x="200" y="175" font-size="15" font-weight="700" fill="#8f2d08" font-family="sans-serif">档位 2</text>
+          <rect x="266" y="150" width="68" height="40" rx="10" fill="#fff3e6" stroke="#ecd3b9"/>
+          <text x="276" y="175" font-size="15" font-weight="700" fill="#8f2d08" font-family="sans-serif">节奏 1.4</text>
+          <rect x="190" y="200" width="144" height="24" rx="9" fill="#f4e6d8"/>
+          <rect x="190" y="200" width="96" height="24" rx="9" fill="#c2410c" opacity=".85"/>
+          <text x="200" y="217" font-size="12" font-weight="700" fill="#fff" font-family="sans-serif">触发进度 66%</text>
+        </svg>
+      </div>
+      <span class="badge">参数面板示意 · CSS/SVG 原创</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap layout">
+<main id="main">
+
+  <section class="block" id="overview">
+    <h2><span class="num">01</span>领域概览：痒感被拆成哪几个变量</h2>
+    <p class="sub">这一类互动工具的核心不在画面，而在“预期—触发—反馈”三段时间被压缩得多紧。</p>
+    <p>足底触感模拟的常见做法有三种：一是音效驱动，用羽毛、指甲、梳齿三类采样声配合画面节奏；二是震动驱动，调用手机横向线性马达，按 80—160 毫秒的间隔脉冲；三是视觉驱动，让角色在被触碰后 0.1—0.3 秒内做出缩脚或绷趾动作。三者叠加，大脑会把声音与画面误读成身体感知，痒感由此产生。</p>
+    <p>参数层面通常只有四个：敏感度档位（一至五档）、触发间隔（0.6—2.0 秒）、单局时长（30—180 秒）、反应脚本编号。档位越高，触发间隔越短、脚本动作越夸张；但时长会同步压缩，以免连续刺激造成麻木。理解这四个变量，比记住某个版本的名字更实用。</p>
+    <ul class="chips">
+      <li><a class="chip" href="/#channels">足底触感反馈</a></li>
+      <li><a class="chip" href="/#channels">敏感度档位设置</a></li>
+      <li><a class="chip alt" href="/#channels">角色反应脚本</a></li>
+      <li><a class="chip" href="/#channels">触发节奏参数</a></li>
+      <li><a class="chip alt" href="/#channels">震动马达采样</a></li>
+    </ul>
+  </section>
+
+  <section class="block" id="picks">
+    <h2><span class="num">02</span>精选内容推荐：五个值得先看的条目</h2>
+    <p class="sub">挑的标准是参数写得清楚、脚本改动有记录、玩家反馈能对上号。</p>
+    <div class="grid-3">
+      <article class="card">
+        <div class="thumb"><img src="https://picsum.photos/seed/tk-foot-01/420/280" width="420" height="280" loading="lazy" alt="手机横屏显示的足底触感模拟参数面板，含档位与节奏滑块"></div>
+        <h4>五档敏感度的实际差异对照</h4>
+        <p>一档间隔 2.0 秒、五档 0.6 秒，实测五档平均 28 秒触发失败判定。</p>
+        <div class="meta"><b>参数拆解</b><span>11-02</span></div>
+      </article>
+      <article class="card">
+        <div class="thumb"><img src="https://picsum.photos/seed/tk-foot-02/420/280" width="420" height="280" loading="lazy" alt="角色小林在第三关的缩脚动画分帧示意"></div>
+        <h4>「小林」第三关缩脚脚本分帧</h4>
+        <p>1.8 版把 6 帧拉到 11 帧，配音后移 0.2 秒，观感从躲闪变成迟疑。</p>
+        <div class="meta"><b>版本差异</b><span>11-06</span></div>
+      </article>
+      <article class="card">
+        <div class="thumb"><img src="https://picsum.photos/seed/tk-foot-03/420/280" width="420" height="280" loading="lazy" alt="羽毛、指甲、梳齿三类音效的波形对比图"></div>
+        <h4>羽毛声与指甲声的痒感差别</h4>
+        <p>羽毛采样峰值低、尾音长；指甲采样在 2—4 千赫更集中，短促感强。</p>
+        <div class="meta"><b>音效采样</b><span>10-29</span></div>
+      </article>
+      <article class="card">
+        <div class="thumb"><img src="https://picsum.photos/seed/tk-foot-04/420/280" width="420" height="280" loading="lazy" alt="手机线性马达脉冲间隔与桌面共振的测试场景"></div>
+        <h4>桌面与手持的震动反馈差距</h4>
+        <p>同一档位，手持时脉冲更容易被感知；平放桌面时共振被吸收大半。</p>
+        <div class="meta"><b>设备适配</b><span>10-26</span></div>
+      </article>
+      <article class="card">
+        <div class="thumb"><img src="https://picsum.photos/seed/tk-foot-05/420/280" width="420" height="280" loading="lazy" alt="每日挑战的计分板与本地记录同步提示"></div>
+        <h4>每日挑战的计分与断网回退</h4>
+        <p>断网时退回本地记录，排行榜停在最后一次同步的分数，不补算。</p>
+        <div class="meta"><b>在线功能</b><span>11-04</span></div>
+      </article>
+      <article class="card">
+        <div class="thumb"><img src="https://picsum.photos/seed/tk-foot-06/420/280" width="420" height="280" loading="lazy" alt="眼罩与耳机参与的触感预期实验记录表"></div>
+        <h4>关掉画面只听声音的测试记录</h4>
+        <p>遮住画面后，7 名测试者里有 4 人把音效误判成真实触碰。</p>
+        <div class="meta"><b>体验实验</b><span>10-31</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="block" id="updates">
+    <h2><span class="num">03</span>最新更新：近三十天的改动记录</h2>
+    <p class="sub">日期以 2026-11-08 为基准，向前追溯改动与测试进度。</p>
+    <ul class="list">
+      <li><span class="d"><time datetime="2026-11-06">11-06</time></span><span class="t"><a href="/#deep">「小林」第三关脚本从 6 帧延长到 11 帧</a><span>配音延迟 0.2 秒，缩脚动作改为两段式，失败判定阈值未动。</span></span></li>
+      <li><span class="d"><time datetime="2026-11-04">11-04</time></span><span class="t"><a href="/#rank">每日挑战改按“有效触发次数”计分</a><span>取消单纯时长排名，30 秒内触发 9 次以上才进入榜单。</span></span></li>
+      <li><span class="d"><time datetime="2026-11-01">11-01</time></span><span class="t"><a href="/#guide">新增梳齿音效采样，替换旧版塑料刮擦声</a><span>新采样在 3 千赫处削减 4 分贝，长时间播放不再刺耳。</span></span></li>
+      <li><span class="d"><time datetime="2026-10-27">10-27</time></span><span class="t"><a href="/#reviews">五档敏感度加入“冷启动保护”</a><span>首次游玩强制从一档开始，走完 45 秒才解锁更高档位。</span></span></li>
+      <li><span class="d"><time datetime="2026-10-22">10-22</time></span><span class="t"><a href="/#faq">离线模式开放基础三关</a><span>角色皮肤与云端排行榜仍需联网，断网时显示上次同步分数。</span></span></li>
+    </ul>
+  </section>
+
+  <section class="block" id="channels">
+    <h2><span class="num">04</span>分类入口：按你要找的东西分</h2>
+    <p class="sub">入口按内容类型划分，点进去是同主题下的条目集合。</p>
+    <div class="grid-3">
+      <div class="card">
+        <h4>入门与机制</h4>
+        <p>痒感原理、四参数、档位说明。</p>
+        <a class="chip" href="/#overview">看机制说明</a>
+      </div>
+      <div class="card">
+        <h4>角色与脚本</h4>
+        <p>38 个反应脚本的分帧与配音差异。</p>
+        <a class="chip" href="/#picks">看角色条目</a>
+      </div>
+      <div class="card">
+        <h4>设备与音效</h4>
+        <p>马达脉冲、桌面共振、三类采样。</p>
+        <a class="chip alt" href="/#deep">看设备对比</a>
+      </div>
+      <div class="card">
+        <h4>难度与计分</h4>
+        <p>五档阈值、失败判定、每日挑战。</p>
+        <a class="chip" href="/#guide">看难度设置</a>
+      </div>
+      <div class="card">
+        <h4>评论与榜单</h4>
+        <p>玩家原话、版本口碑、条目排行。</p>
+        <a class="chip alt" href="/#reviews">看玩家反馈</a>
+      </div>
+      <div class="card">
+        <h4>常见问题</h4>
+        <p>触感真实性、离线、时长与分寸。</p>
+        <a class="chip" href="/#faq">看问答</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block deep" id="deep">
+    <h2><span class="num">05</span>深度解析：脚本帧数比敏感度档位更能决定体感</h2>
+    <p class="sub">以下判断基于 2026-10-12 至 11-06 的版本记录与本地测试，可被反驳。</p>
+
+    <h3>判断一：0.2 秒的配音延迟，改写了整段观感</h3>
+    <p>1.7 版「小林」第三关的缩脚脚本是 6 帧，配音在动作第 1 帧就响起，玩家看到的是“被碰到立刻躲”。1.8 版把动作改为 11 帧，配音移到第 4 帧，延迟约 0.2 秒。同一段音频、同一个角色，观感从条件反射变成迟疑躲闪。10 月 30 日与 11 月 6 日两轮测试各 6 人，前者有 5 人描述为“立刻跑开”，后者有 4 人描述为“先愣一下再缩脚”。</p>
+    <table>
+      <caption style="text-align:left;font-size:13px;color:#7a6a5d;padding-bottom:6px">两版脚本参数对照（数据来自版本说明页 1.7 / 1.8）</caption>
+      <thead><tr><th>项目</th><th>1.7 版</th><th>1.8 版</th></tr></thead>
+      <tbody>
+        <tr><td>缩脚动画帧数</td><td>6 帧</td><td>11 帧</td></tr>
+        <tr><td>配音起始帧</td><td>第 1 帧</td><td>第 4 帧</td></tr>
+        <tr><td>音画延迟</td><td>≈0 秒</td><td>≈0.2 秒</td></tr>
+        <tr><td>失败判定阈值</td><td>触发 6 次</td><td>触发 6 次（未变）</td></tr>
+      </tbody>
+    </table>
+    <p>可核对的部分是帧数与延迟，观感描述则是测试者的转述。若有人称“1.8 版更痒”，那属于推测，数据只能支持“反应变慢”这一条。</p>
+
+    <h3>判断二：五档并不是“更痒”，而是“更快结束”</h3>
+    <p>把档位理解为强度，是最常见的误读。实际参数里，五档只压缩触发间隔与单局时长：一档间隔 2.0 秒、单局 180 秒；五档间隔 0.6 秒、单局 45 秒。10 月 24 日的 10 人测试中，五档平均在 28 秒时出现“麻木”反馈，三档平均 71 秒，一档在 180 秒内只有 2 人报告麻木。也就是说，高档位给的不是更长时间的痒，而是更密集、更短的刺激。</p>
+    <div class="callout"><b>可核对的中段：</b>三档间隔 1.2 秒、单局 90 秒，10 人中有 6 人在 60 秒后主动调低一档；五档同批人里 8 人在 30 秒内结束。两组差别在间隔，不在音量。</div>
+
+    <h3>判断三：震动在桌面几乎失效，手持才是主场景</h3>
+    <p>线性马达的脉冲能量很小。手机平放在木质桌面时，共振被桌面吸收，10 月 26 日的对比测试中，同一档位下 8 名测试者有 5 人无法在 3 秒内判断震动是否发生；手持时 8 人全部能感知。这条判断有明确边界：换成软垫或床面，反馈又会因为阻尼而变钝。设备位置比档位更值得先确认。</p>
+
+    <h3>判断四：角色差异被高估了</h3>
+    <p>38 个反应脚本里，真正改变参数结构的不到 10 个，其余是配音与表情替换。把「小林」的配音接到另一个角色上，多数测试者分辨不出差异。争议在于：皮肤与配音属于内容消费，玩家愿意为它付费，那它就有价值；但从体感结果看，换角色不如换档位有效。这两种说法各自成立，取决于你把这类工具当玩法还是当收藏。</p>
+  </section>
+
+  <section class="block" id="guide">
+    <h2><span class="num">06</span>体验指南：从一档走完全程</h2>
+    <p class="sub">按顺序做，能少走两次“太高档位直接麻木”的弯路。</p>
+    <ol class="steps">
+      <li><b>先确认设备位置。</b>手持或放在大腿上，避免平放硬桌面；震动被吸收后，档位调多高都没用。</li>
+      <li><b>从一档开始，走满 45 秒。</b>一档触发间隔 2.0 秒，节奏慢，正好用来熟悉音效与画面配合的时差。</li>
+      <li><b>只上调一档，观察 60 秒内是否出现麻木。</b>出现就退回上一档，麻木不是“适应”，是反馈被大脑过滤。</li>
+      <li><b>单局结束后停 10 分钟。</b>连续三局以上，触感预期会明显下降，这是 10 月 22 日测试里最一致的结论。</li>
+      <li><b>关掉画面再听一次音效。</b>遮住画面后，部分人会把采样声误判成真实触碰，这个测试能帮你判断自己属于哪一类。</li>
+    </ol>
+    <div class="quote">
+      <p>“第一次用三档，前 20 秒确实痒，后面就只剩手机在抖。换回一档反而更久。”——测试记录 2026-10-24，编号 T-07</p>
+      <cite>本地测试者原话，未做删改</cite>
+    </div>
+  </section>
+
+  <section class="block" id="faq">
+    <h2><span class="num">07</span>常见问题</h2>
+    <p class="sub">问题按玩家实际搜索措辞整理，答案只讲能核对的部分。</p>
+    <details open>
+      <summary>tk挠脚心模拟器的触感反馈是真实的吗？</summary>
+      <div class="a"><p>不是物理接触。它靠音效、震动马达与画面节奏制造“痒”的心理预期。实际触感取决于振动强度与设备位置：手持时明显，平放桌面时大部分被吸收。把它理解为视听暗示更准确。</p></div>
+    </details>
+    <details>
+      <summary>敏感度档位怎么选才合适？</summary>
+      <div class="a"><p>从二档起步，或者干脆一档走完全流程。三档以上每局时长会压缩，容易在 30 秒内触发失败判定。对触感反馈陌生的人，一档 180 秒比五档 45 秒更能判断自己是否适应。</p></div>
+    </details>
+    <details>
+      <summary>为什么同一角色在不同版本里反应差别很大？</summary>
+      <div class="a"><p>反应由脚本帧与配音片段共同决定。1.8 版把「小林」的缩脚动作从 6 帧延长到 11 帧，配音延迟 0.2 秒，观感就从立刻躲闪变成迟疑躲闪。版本差异的影响大于角色本身。</p></div>
+    </details>
+    <details>
+      <summary>离线状态下能玩吗？</summary>
+      <div class="a"><p>基础三关可以。云端排行榜、角色皮肤与每日挑战依赖网络；断网时退回本地记录，排行榜显示上一次同步的分数，不会补算离线成绩。</p></div>
+    </details>
+    <details>
+      <summary>一天玩多久比较合适？</summary>
+      <div class="a"><p>单次不超过三局、局间停 10 分钟。连续刺激会让触感预期下降，10 月 22 日的测试里，连续四局之后多数人报告“只剩手机在抖”。睡前也不建议连续玩 20 分钟以上。</p></div>
+    </details>
+    <details>
+      <summary>儿童可以玩这类模拟器吗？</summary>
+      <div class="a"><p>音效与画面按成人向设计，部分版本含卡通化的挣扎演出。12 岁以下儿童不宜单独使用，监护人也不该把它当作哄睡工具。</p></div>
+    </details>
+  </section>
+
+  <section class="block" id="reviews">
+    <h2><span class="num">08</span>玩家评论</h2>
+    <p class="sub">保留原话语气，包括中性与吐槽；指向具体条目本身。</p>
+    <div class="reviews">
+      <div class="rev">
+        <div class="who"><span class="av">林</span><span>林间小路</span><span class="stars">★★★★☆</span></div>
+        <p>1.8 版「小林」第三关那个 0.2 秒延迟是真的能感觉到，以前像被弹开，现在像愣了一下才缩脚。这个改动比加皮肤有用。</p>
+        <span class="src">11-06 · 版本 1.8</span>
+      </div>
+      <div class="rev">
+        <div class="who"><span class="av">纸</span><span>纸飞机不飞</span><span class="stars">★★★☆☆</span></div>
+        <p>五档 28 秒就麻木了，跟宣传的“越高级越痒”对不上。三档 1.2 秒间隔反而刚好，建议把档位说明写清楚点。</p>
+        <span class="src">10-24 · 敏感度测试</span>
+      </div>
+      <div class="rev">
+        <div class="who"><span class="av">阿</span><span>阿柴不柴</span><span class="stars">★★★★★</span></div>
+        <p>羽毛音效采样那版换得对，旧版塑料刮擦听两分钟耳朵疼。梳齿声现在 3 千赫削了 4 分贝，长时间戴着耳机也不刺。</p>
+        <span class="src">11-01 · 音效采样</span>
+      </div>
+      <div class="rev">
+        <div class="who"><span class="av">北</span><span>北纬三十度</span><span class="stars">★★☆☆☆</span></div>
+        <p>平放桌上完全没感觉，还以为坏了。后来拿手里才发现震动很轻。设备说明里应该写一句“建议手持”，不然新用户第一局就劝退。</p>
+        <span class="src">10-26 · 设备适配</span>
+      </div>
+      <div class="rev">
+        <div class="who"><span class="av">测</span><span>测试员小周</span><span class="stars">★★★☆☆</span></div>
+        <p>遮住画面只听声音，7 个人里 4 个说像真碰到。这个结论我信，但样本太小，别当定论。至少说明音效权重比想象的高。</p>
+        <span class="src">10-31 · 体验实验</span>
+      </div>
+      <div class="rev">
+        <div class="who"><span class="av">咸</span><span>咸鱼打挺</span><span class="stars">★★★★☆</span></div>
+        <p>每日挑战改成按有效触发次数算分之后，终于不用熬时长了。30 秒内 9 次那个门槛有点高，手残只能到 7 次。</p>
+        <span class="src">11-04 · 计分规则</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="rank">
+    <h2><span class="num">09</span>条目榜单：按参数完整度排序</h2>
+    <p class="sub">评分只看参数是否写清、改动是否有记录，不看皮肤数量。</p>
+    <ol class="rank">
+      <li><span><b>「小林」第三关 1.8 脚本</b><br><span class="meta">帧数、配音帧、阈值均有记录</span></span><span class="sc">9.4</span></li>
+      <li><span><b>五档敏感度对照表</b><br><span class="meta">间隔与时长可逐档核对</span></span><span class="sc">9.1</span></li>
+      <li><span><b>梳齿音效采样 11-01</b><br><span class="meta">含频段削减数值</span></span><span class="sc">8.8</span></li>
+      <li><span><b>每日挑战计分改版</b><br><span class="meta">门槛 9 次，规则公开</span></span><span class="sc">8.2</span></li>
+      <li><span><b>离线三关模式</b><br><span class="meta">同步逻辑写得清楚</span></span><span class="sc">7.9</span></li>
+      <li><span><b>桌面共振测试</b><br><span class="meta">样本 8 人，偏小</span></span><span class="sc">7.4</span></li>
+    </ol>
+  </section>
+
+  <section class="block" id="news">
+    <h2><span class="num">10</span>相关资讯：同期值得留意的动向</h2>
+    <ul class="list">
+      <li><span class="d">10-30</span><span class="t"><a href="/#deep">配音延迟测试第二轮完成</a><span>6 人样本，4 人把 1.8 版描述为“先愣再缩”。</span></span></li>
+      <li><span class="d">10-25</span><span class="t"><a href="/#guide">一档 180 秒长局测试开放</a><span>用于观察长时间低强度刺激是否会累积麻木。</span></span></li>
+      <li><span class="d">10-21</span><span class="t"><a href="/#faq">关于“真人触感”说法的澄清</a><span>官方说明页称仅提供视听暗示，不含物理接触组件。</span></span></li>
+    </ul>
+  </section>
+
+  <section class="block" id="related">
+    <h2><span class="num">11</span>相关推荐</h2>
+    <p class="sub">按你接下来可能想查的词列，点开是对应条目。</p>
+    <ul class="chips">
+      <li><a class="chip" href="/#deep">角色反应脚本帧数对比</a></li>
+      <li><a class="chip alt" href="/#guide">五档敏感度阈值表</a></li>
+      <li><a class="chip" href="/#deep">手机线性马达震动测试</a></li>
+      <li><a class="chip alt" href="/#picks">羽毛与指甲音效采样</a></li>
+      <li><a class="chip" href="/#faq">关掉画面只听声音</a></li>
+      <li><a class="chip alt" href="/#rank">每日挑战有效触发计分</a></li>
+      <li><a class="chip" href="/#updates">冷启动保护机制</a></li>
+    </ul>
+  </section>
+
+</main>
+
+<aside aria-label="辅助信息">
+  <div class="panel">
+    <h2>站内查找</h2>
+    <form class="search" id="searchForm" role="search">
+      <label for="q" class="skip" style="position:absolute;left:-9999px">搜索条目</label>
+      <input id="q" name="q" type="search" placeholder="输入档位、角色、音效…" autocomplete="off">
+      <button type="submit">查找</button>
+    </form>
+    <p id="searchMsg" aria-live="polite">本地查找，仅在当前页面条目中匹配。</p>
+  </div>
+
+  <div class="panel">
+    <h2>栏目导航</h2>
+    <ul class="snav" id="sideNav">
+      <li><a href="/#overview">领域概览</a></li>
+      <li><a href="/#picks">精选推荐</a></li>
+      <li><a href="/#updates">最新更新</a></li>
+      <li><a href="/#channels">分类入口</a></li>
+      <li><a href="/#deep">深度解析</a></li>
+      <li><a href="/#guide">体验指南</a></li>
+      <li><a href="/#faq">常见问题</a></li>
+      <li><a href="/#reviews">玩家评论</a></li>
+      <li><a href="/#rank">条目榜单</a></li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h2>参数速记</h2>
+    <ul class="mini">
+      <li><b>一档</b> 间隔 2.0s / 单局 180s</li>
+      <li><b>三档</b> 间隔 1.2s / 单局 90s</li>
+      <li><b>五档</b> 间隔 0.6s / 单局 45s</li>
+      <li><b>1.8 版</b> 缩脚 11 帧 / 延迟 0.2s</li>
+      <li><b>梳齿声</b> 3kHz 削 4dB</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h2>时间线</h2>
+    <ul class="tl">
+      <li><time datetime="2026-11-06">11-06</time><b>1.8 脚本上线</b>，帧数与配音同步调整。</li>
+      <li><time datetime="2026-11-04">11-04</time><b>计分改版</b>，有效触发次数替代时长。</li>
+      <li><time datetime="2026-11-01">11-01</time><b>梳齿采样</b>替换塑料刮擦声。</li>
+      <li><time datetime="2026-10-27">10-27</time><b>冷启动保护</b>，新用户强制一档起步。</li>
+    </ul>
+  </div>
+</aside>
+
+</div>
+
+<footer class="site">
+  <div class="wrap foot">
+    <div>
+      <div class="fbrand">
+        <svg viewBox="0 0 40 40" aria-hidden="true" role="img">
+          <rect width="40" height="40" rx="11" fill="#c2410c"/>
+          <path d="M12 28c0-7.5 3.6-15 8-15s8 7.5 8 15" stroke="#fff7ed" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+          <circle cx="16.5" cy="22" r="2" fill="#fff7ed"/>
+          <circle cx="23.5" cy="22" r="2" fill="#fff7ed"/>
+        </svg>
+        <span>tk挠脚心模拟器</span>
+      </div>
+      <p>把足底触感拆成档位、节奏、帧数与设备位置四个可核对项，供玩家在动手前先比对参数。</p>
+      <p>页面条目为示例数据，版本号、日期与测试人数用于演示记录方式，不代表任何线上产品的实际发布。</p>
+    </div>
+    <div class="fcols">
+      <div>
+        <h3>玩法</h3>
+        <ul>
+          <li><a href="/#overview">领域概览</a></li>
+          <li><a href="/#guide">体验指南</a></li>
+          <li><a href="/#deep">深度解析</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>条目</h3>
+        <ul>
+          <li><a href="/#picks">精选推荐</a></li>
+          <li><a href="/#rank">条目榜单</a></li>
+          <li><a href="/#updates">最新更新</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>互动</h3>
+        <ul>
+          <li><a href="/#faq">常见问题</a></li>
+          <li><a href="/#reviews">玩家评论</a></li>
+          <li><a href="/#related">相关推荐</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="wrap legal">
+    <span>页脚更新时间 2026-11-08，对应正文可核对更新项：1.8 脚本、计分改版、梳齿采样、冷启动保护。</span>
+    <span class="r"><span>示例数据说明</span><span>© 2026 足底触感资料整理</span></span>
+  </div>
+</footer>
+
+<button id="toTop" type="button" aria-label="回到顶部">↑</button>
+
+<script>
+(function(){
+  var menuBtn=document.getElementById('menuBtn');
+  var nav=document.getElementById('siteNav');
+  if(menuBtn&&nav){
+    menuBtn.addEventListener('click',function(){
+      var open=nav.classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded',open?'true':'false');
+    });
+    nav.addEventListener('click',function(e){
+      if(e.target.tagName==='A'){nav.classList.remove('open');menuBtn.setAttribute('aria-expanded','false');}
+    });
+  }
+  var toTop=document.getElementById('toTop');
+  function onScroll(){
+    if(window.scrollY>420){toTop.classList.add('show');}else{toTop.classList.remove('show');}
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+  toTop.addEventListener('click',function(){
+    var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top:0,behavior:reduce?'auto':'smooth'});
+  });
+
+  var links=Array.prototype.slice.call(document.querySelectorAll('#sideNav a'));
+  var sections=links.map(function(a){
+    var id=a.getAttribute('href').replace('/#','');
+    return document.getElementById(id);
+  }).filter(Boolean);
+  if('IntersectionObserver' in window&&sections.length){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          links.forEach(function(a){
+            a.classList.toggle('active',a.getAttribute('href')==='/# '+en.target.id||a.getAttribute('href')==='/'+'#'+en.target.id);
+          });
+        }
+      });
+    },{rootMargin:'-120px 0px -60% 0px',threshold:0});
+    sections.forEach(function(s){io.observe(s);});
+  }
+
+  var form=document.getElementById('searchForm');
+  var input=document.getElementById('q');
+  var msg=document.getElementById('searchMsg');
+  var nodes=Array.prototype.slice.call(document.querySelectorAll('main h2, main h3, main h4, main .card p, main .list .t, main details summary'));
+  function clearMarks(){
+    Array.prototype.slice.call(document.querySelectorAll('mark.tkhl')).forEach(function(m){
+      var p=m.parentNode; if(!p)return;
+      p.replaceChild(document.createTextNode(m.textContent),m);
+      p.normalize();
+    });
+  }
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var q=input.value.trim();
+    clearMarks();
+    msg.className='';
+    if(!q){msg.textContent='请输入关键词，例如“五档”“小林”“梳齿”。';return;}
+    var hit=0,nodes.forEach(function(n){
+      var t=n.textContent||'';
+      if(t.indexOf(q)>-1){
+        hit++;
+        if(n.tagName==='SUMMARY'||n.tagName==='H2'||n.tagName==='H3'||n.tagName==='H4'){
+          n.scrollIntoView({block:'center'});
+        }
+      }
+    });
+    if(hit===0){
+      msg.className='none';
+      msg.textContent='没有找到含“'+q+'”的条目。可试试“五档”“1.8”“音效”“小林”。';
+    }else{
+      msg.className='found';
+      msg.textContent='找到 '+hit+' 处含“'+q+'”的内容，已在页面中定位。';
+    }
+  });
+})();
+</script>
+</body>
+  </html>
